@@ -1,0 +1,8 @@
+selenium
+pandas 
+python-dotenv 
+webdriver-manager
+boto3
+google-cloud-bigquery
+google-cloud-storage
+spacy
