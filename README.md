@@ -1,5 +1,6 @@
 # capstone-legal-docker-scraper
 This repo contains the `dockerfile` and the scraper.py for the ETL pipeline located at : https://github.com/hxwwong/capstone-legal
+
 The output will be a parquet file, `cases.parquet` containing case information about the jurisprudence scraped from CDAsia-Online (https://cdasiaonline-com.dlsu.idm.oclc.org/), a prominent legal database. After scraping, it will upload `cases.parquet` to the specified GCS bucket.
 
 Accessing the website and uploading to GCS will require credentials that have been stored in a .env file that has been omitted from this repo.
