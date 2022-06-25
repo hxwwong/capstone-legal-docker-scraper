@@ -29,7 +29,7 @@ login_page = "https://login.dlsu.idm.oclc.org/login?qurl=https://cdasiaonline.co
 # window setings 
 
 options = webdriver.ChromeOptions() 
-options.add_argument("--headless")
+options.add_argument("--headless") # removes the GUI 
 options.add_argument("--start-maximized") 
 options.add_argument("--disable-notifications")
 options.add_argument("--incognito")
@@ -39,7 +39,7 @@ driver.get(login_page)
 driver.maximize_window() 
 sleep(3) 
 
-# inputting credentials from the dotenv file 
+################## BYPASSING THE FIRST REDIRECT ##########################
 
 #  find_element(by=By.NAME, value=name)
 username = driver.find_element(by=By.NAME, value='user') 
@@ -54,13 +54,13 @@ submit_button = driver.find_element(by=By.NAME, value='login')
 submit_button.click()
 sleep(3)
 
-# clicking the prompt after being redirected from login_page 
+################### BYPASSING THE SECOND REDIRECT ##########################
 continue_button = driver.find_element(by=By.CLASS_NAME, value='btn-card-submit')
 continue_button.click()
 
-#############
-## SCRAPER ## 
-############# 
+############################################################################
+######################### SCRAPER ##########################################
+############################################################################
 
 # collecting all the rows containing cases entries
 cases = driver.find_elements(by=By.CLASS_NAME, value='i-menu-newtab')
@@ -85,6 +85,10 @@ for case in cases:
     data_list.append(data)
 
 def scrape_cases(url): 
+    """
+        From the base URL, each individual page found in the initial scrape is navigated to, and the contents are scraped
+        The text is stripped of unnecessary characters and returned
+        """
     driver.get(url)
     sleep(3)
     doc = driver.find_element(by=By.CLASS_NAME, value='doc-view-container')
@@ -94,7 +98,11 @@ def scrape_cases(url):
 
 
 def word_count(text):
-    words = text.split() # needs handling for Nonetype objects 
+    """
+    Counts the words and returns a dictionary containing the frequency of each detected word.
+    Preprocessing is done at the start to remove words with specific characters, or those who fall below a specific length.
+    """
+    words = text.split() # may need handling for NoneType objects 
    
     # filtering for words w/ special chars
     temp = []
@@ -116,6 +124,9 @@ def word_count(text):
     return word_dict
     
 def ner(text):
+    """
+    Runs Name Entitry Recognition for each individual text input and returns a ner-object saved as a dictionary
+    """
     nlp = spacy.load("en_core_web_sm")  
     doc = nlp(text)
     # print("Noun phrases:", [chunk.text for chunk in doc.noun_chunks])
@@ -131,27 +142,23 @@ def ner(text):
 df = pd.DataFrame(data_list)
 df['body_text'] = df['url'].apply(lambda x: scrape_cases(x))
 df['sum_word_cnt'] = df['body_text'].apply(lambda x: len(x.split()))
-df['dict_word_cnt'] = df['body_text'].apply(lambda x: word_count(x)).astype('str')
+df['dict_word_cnt'] = df['body_text'].apply(lambda x: word_count(x)).astype('str') 
 df['NER'] = df['body_text'].apply(lambda x: ner(x)).astype('str')
 
 
-
 df.to_parquet('cases.parquet')
-
-
-
-
-
-
-
 print("successfully scraped")
 print(os.listdir(DATA_PATH))
 
-
-
-
+############################################################################
+######################## UPLOADING TO GCS ##################################
+############################################################################
 
 def upload_file_to_gcs(remote_file_name, local_file_name):
+    """
+    Uploads the file to the GCS bucket defined locally on the VM's Airflow variables. 
+    Remote file name sets the name on the bucket, while local identifies the file in the DATA_PATH directory
+    """
     gcs_client = boto3.client(
         "s3",
         region_name="auto",
