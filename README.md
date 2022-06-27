@@ -25,7 +25,7 @@ In order to create your own versoin of the docker image, you can run the followi
 `scraper.py` is a standalone ETL process that scrapes CDAasia Online, a paywalled legal database, runs spacy, wordcount, and NER transformations, and loads the resulting parquet file into the Google Cloud Storage Bucket. 
 
 ## Credentials & .env files 
-The code itself relies on having a `develop.env` file which should be part of the repo **before it is built and pushed** to supply the credentials via `os.environ('CREDENTIAL`) in the `gcs_upload_file` function.
+The code itself relies on having a `develop.env` file which should be part of the repo **before it is built and pushed** to supply the credentials via `os.environ('CREDENTIAL'`) in the `gcs_upload_file` function.
 
 ## Scraping CDAsia-Online 
 The scraper is designed to scrape the version of the cases in the target file, and in the first page to access the latest uploads. Once it goes to the target URL, it scrapes all the available information in the summary page, and then navigates to each individual case and then saves the content of the document.  
